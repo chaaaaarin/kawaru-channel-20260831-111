@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>面倒くさい採用メールのやり取りをCodexで完全自動化</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --brand:#1C3461; --brand-deep:#16284A; --brand-soft:rgba(28,52,97,.08); --brand-line:rgba(28,52,97,.22);
+    --accent:#5BBCD4; --accent-deep:#2C7A93; --accent-soft:rgba(91,188,212,.16);
+    --bg:#F7FAFC; --paper:#FFFFFF; --ink:#1C3461; --ink-mid:#4A6080; --ink-sub:#8098B4; --line:rgba(28,52,97,.12);
+    --head:'Noto Sans JP';
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:'Noto Sans JP',-apple-system,'Hiragino Sans','Yu Gothic',sans-serif;line-height:1.7;}
+  .doc{max-width:880px;margin:0 auto;background:var(--paper);box-shadow:0 0 60px rgba(0,0,0,.10);overflow:hidden;}
+  .hero{position:relative;background:linear-gradient(160deg,var(--brand-soft) 0%,var(--bg) 70%);padding:50px 52px 44px;border-bottom:3px solid var(--brand-line);overflow:hidden;}
+  .hero .coin{position:absolute;width:160px;height:160px;border-radius:50%;background:var(--accent);opacity:.15;top:-52px;right:-36px;}
+  .hero .chan{display:inline-flex;align-items:center;gap:12px;margin-bottom:18px;}
+  .eyebrow{font-family:var(--head);font-weight:900;color:var(--brand-deep);letter-spacing:2px;font-size:13px;display:inline-flex;align-items:center;gap:9px;margin-bottom:12px;}
+  .eyebrow::before{content:'▸';background:var(--accent);color:var(--ink);border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;}
+  h1{font-family:var(--head);font-weight:900;font-size:36px;line-height:1.25;color:var(--ink);}
+  h1 .hl{color:var(--brand-deep);}
+  .hero p.sub{font-size:17px;color:var(--ink-mid);font-weight:700;margin-top:14px;max-width:680px;}
+  .meta{margin-top:20px;display:flex;gap:9px;flex-wrap:wrap;}
+  .meta span{background:var(--paper);border:1.5px solid var(--line);border-radius:999px;padding:6px 15px;font-size:13px;font-weight:700;color:var(--ink-mid);}
+  .meta span.k{background:var(--accent-soft);border-color:var(--accent);color:var(--ink);}
+  .tocbar{background:var(--brand-soft);border-bottom:1px solid var(--line);padding:16px 52px;display:flex;flex-wrap:wrap;gap:8px;}
+  .tocbar a{font-size:13px;font-weight:700;color:var(--brand-deep);text-decoration:none;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:5px 13px;}
+  .tocbar a:hover{border-color:var(--brand);}
+  section{padding:38px 52px;border-bottom:1px solid var(--line);}
+  .sec-h{display:flex;align-items:center;gap:13px;margin-bottom:20px;}
+  .sec-h .no{flex-shrink:0;width:38px;height:38px;border-radius:50%;background:var(--accent);color:var(--ink);font-family:var(--head);font-weight:900;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 0 var(--accent-deep);}
+  .sec-h h2{font-family:var(--head);font-weight:900;font-size:24px;color:var(--ink);}
+  p.body{font-size:15.5px;color:var(--ink);margin-bottom:12px;}
+  p.note{font-size:13px;color:var(--ink-mid);} .hl{color:var(--brand-deep);font-weight:700;} .hl-a{color:var(--accent-deep);font-weight:700;}
+  .lead{font-size:16px;color:var(--ink-mid);font-weight:700;}
+  .tldr{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;}
+  .tldr .t{background:var(--bg);border:1.5px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;padding:16px 15px;}
+  .tldr .t .k{font-family:var(--head);font-weight:900;color:var(--ink);font-size:13px;margin-bottom:6px;}
+  .tldr .t p{font-size:13.5px;font-weight:700;color:var(--ink);line-height:1.55;}
+  .bullets{list-style:none;} .bullets li{font-size:15px;font-weight:700;color:var(--ink);padding:10px 0 10px 30px;position:relative;border-bottom:1px solid var(--line);}
+  .bullets li::before{content:'';position:absolute;left:2px;top:50%;transform:translateY(-50%);width:11px;height:11px;border-radius:50%;background:var(--accent);}
+  .checks{list-style:none;} .checks li{font-size:14.5px;color:var(--ink);padding:7px 0 7px 26px;position:relative;}
+  .checks li::before{content:'✔';position:absolute;left:2px;color:var(--brand);font-weight:900;}
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;}
+  .flow .step{flex:1;min-width:120px;background:var(--bg);border:1.5px solid var(--line);border-top:4px solid var(--brand);border-radius:10px;padding:13px 9px;text-align:center;}
+  .flow .step .t{font-family:var(--head);font-weight:900;font-size:13.5px;color:var(--ink);margin-bottom:4px;}
+  .flow .step .d{font-size:11px;color:var(--ink-mid);line-height:1.4;}
+  .flow .arrow{display:flex;align-items:center;color:var(--accent);font-size:18px;font-weight:900;padding:0 4px;}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;}
+  .stat{background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:16px;text-align:center;}
+  .stat .n{font-family:var(--head);font-size:24px;font-weight:900;color:var(--brand-deep);line-height:1.2;}
+  .stat .u{font-size:11.5px;color:var(--ink-sub);margin-top:4px;} .stat .l{font-size:12.5px;font-weight:700;color:var(--ink);margin-top:6px;}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;}
+  .cards .c{background:var(--bg);border:1.5px solid var(--line);border-radius:13px;padding:16px 14px;}
+  .cards .c h3{font-family:var(--head);font-weight:900;font-size:15px;color:var(--ink);margin-bottom:6px;} .cards .c p{font-size:12.5px;color:var(--ink-mid);line-height:1.55;}
+  .ba{display:flex;align-items:stretch;gap:14px;}
+  .ba .panel{flex:1;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:16px;}
+  .ba .panel.after{border-color:var(--brand);border-width:2px;background:var(--paper);}
+  .ba .panel .tag{font-family:var(--head);font-weight:900;font-size:12px;border-radius:999px;padding:3px 11px;display:inline-block;margin-bottom:9px;}
+  .ba .panel.before .tag{background:var(--line);color:var(--ink-mid);} .ba .panel.after .tag{background:var(--brand);color:#fff;}
+  .ba .panel ul{list-style:none;} .ba .panel li{font-size:13px;color:var(--ink);padding:5px 0 5px 20px;position:relative;line-height:1.5;}
+  .ba .panel.before li::before{content:'×';position:absolute;left:0;color:var(--ink-sub);font-weight:900;}
+  .ba .panel.after li::before{content:'○';position:absolute;left:0;color:var(--brand);font-weight:900;}
+  .ba .mid{display:flex;align-items:center;color:var(--accent);font-size:22px;font-weight:900;}
+  table.cmp{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+  table.cmp th,table.cmp td{padding:10px 13px;text-align:left;border-bottom:1px solid var(--line);}
+  table.cmp thead th{background:var(--ink);color:#fff;font-family:var(--head);font-weight:700;}
+  table.cmp thead th:first-child{background:var(--brand-deep);}
+  table.cmp tbody tr:last-child td{border-bottom:none;} table.cmp td:first-child{font-weight:700;}
+  table.cmp .yes{color:var(--brand-deep);font-weight:900;} table.cmp .no{color:var(--ink-sub);}
+  .price{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;}
+  .price .p{background:var(--bg);border:1.5px solid var(--line);border-radius:13px;padding:15px 12px;text-align:center;}
+  .price .p.best{border:2px solid var(--accent);position:relative;background:var(--paper);}
+  .price .p.best::before{content:'これで十分';position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--accent);color:var(--ink);font-family:var(--head);font-weight:900;font-size:10px;border-radius:999px;padding:2px 10px;white-space:nowrap;}
+  .price .p .name{font-family:var(--head);font-weight:900;font-size:14px;color:var(--ink);}
+  .price .p .amt{font-family:var(--head);font-size:22px;font-weight:900;color:var(--brand-deep);margin:5px 0;} .price .p .amt small{font-size:11px;color:var(--ink-sub);}
+  .price .p ul{list-style:none;text-align:left;margin-top:6px;} .price .p li{font-size:11px;color:var(--ink-mid);padding:3px 0 3px 16px;position:relative;line-height:1.4;}
+  .price .p li::before{content:'✔';position:absolute;left:0;color:var(--brand);}
+  .map{list-style:none;} .map li{display:flex;align-items:center;gap:12px;font-size:14px;font-weight:600;color:var(--ink);padding:11px 14px;margin-bottom:9px;background:var(--bg);border:1.5px solid var(--line);border-left:4px solid var(--brand);border-radius:11px;}
+  .map li .q{flex:1;} .map li .ar{color:var(--accent);font-weight:900;} .map li .a{flex:1.3;color:var(--brand-deep);font-weight:700;}
+  .steps{list-style:none;} .steps li{font-size:14px;font-weight:600;color:var(--ink);padding:11px 14px 11px 48px;position:relative;margin-bottom:9px;background:var(--bg);border:1.5px solid var(--line);border-left:4px solid var(--brand);border-radius:11px;}
+  .steps li .n{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:26px;height:26px;background:var(--accent);color:var(--ink);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--head);font-weight:900;font-size:12px;box-shadow:0 2px 0 var(--accent-deep);}
+  .prompt{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:var(--ink);color:#ECECEA;border-radius:10px;padding:14px 16px;line-height:1.65;margin-top:10px;}
+  .prompt .c{color:var(--accent);} .prompt .cm{color:var(--ink-sub);}
+  .faq .qa{background:var(--bg);border:1.5px solid var(--line);border-radius:11px;padding:13px 16px;margin-bottom:9px;}
+  .faq .qa .q{font-family:var(--head);font-weight:900;font-size:14.5px;color:var(--brand-deep);} .faq .qa .q::before{content:'Q. ';color:var(--accent-deep);}
+  .faq .qa .a{font-size:13.5px;color:var(--ink-mid);margin-top:4px;} .faq .qa .a::before{content:'A. ';color:var(--ink);font-weight:700;}
+  .box{background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:12px;padding:16px 20px;}
+  .box h3{font-family:var(--head);font-weight:900;color:var(--accent-deep);font-size:15px;margin-bottom:8px;}
+  .box ul{margin-left:18px;font-size:13.5px;color:var(--ink);} .box li{margin-bottom:5px;line-height:1.5;}
+  .kitbox{background:var(--brand-soft);border:1.5px solid var(--brand-line);border-radius:12px;padding:16px 20px;margin-top:10px;}
+  .kitbox b{color:var(--brand-deep);}
+  .gift{background:linear-gradient(160deg,var(--accent-soft),var(--bg));border:2px solid var(--accent);border-radius:14px;padding:22px 24px;}
+  .gift h3{font-family:var(--head);font-weight:900;font-size:17px;color:var(--ink);margin-bottom:10px;}
+  .gift ol{margin-left:20px;font-size:14px;color:var(--ink);line-height:1.75;}
+  .gift .cta{display:inline-flex;align-items:center;gap:7px;margin-top:14px;background:var(--accent);color:var(--ink);border-radius:999px;padding:10px 22px;font-family:var(--head);font-weight:900;font-size:14px;text-decoration:none;}
+  footer{background:var(--ink);color:#EBEBE7;padding:34px 52px;}
+  footer .frow{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;}
+  footer .lg{display:flex;align-items:center;gap:11px;}
+  footer .cta{background:var(--accent);color:var(--ink);border-radius:999px;padding:11px 24px;font-family:var(--head);font-weight:900;font-size:14px;text-decoration:none;}
+  footer .src{font-size:12px;color:#9C9C96;margin-top:16px;line-height:1.9;} footer .src a{color:var(--accent);text-decoration:none;}
+  .secsub{font-family:var(--head);font-weight:900;font-size:14.5px;color:var(--ink);margin:18px 0 10px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+  /* --- 追加スタイル --- */
+  .nb{display:inline-block;}
+  rt{font-size:.55em;color:var(--ink-mid);font-weight:700;}
+  .doccard{background:#fff;border:1.5px solid var(--line);border-radius:11px;overflow:hidden;margin-top:10px;}
+  .doccard .bar{background:var(--ink);color:#EDE9E1;font-size:11px;font-family:ui-monospace,Menlo,monospace;padding:7px 14px;}
+  .doccard .bd{padding:15px 18px;}
+  .doccard .en{font-size:13px;color:var(--ink);line-height:1.65;font-weight:600;}
+  .doccard .ja-gloss{font-size:13px;color:var(--brand-deep);font-weight:700;margin-top:9px;padding-top:9px;border-top:1px solid var(--line);line-height:1.65;}
+  .doccard table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .doccard table td{padding:6px 5px;border-bottom:1px solid var(--line);color:var(--ink);vertical-align:top;}
+  .doccard table td:first-child{color:var(--ink-mid);font-weight:700;}
+  .doccard table tr:last-child td{border-bottom:none;}
+  .srcline{font-size:12px;color:var(--ink-mid);margin-top:10px;}
+  .srcline a{color:var(--brand-deep);font-weight:700;text-decoration:none;border-bottom:1.5px solid var(--brand-line);}
+</style>
+</head>
+<body>
+<svg style="display:none">
+  <symbol id="kawaru-logo" viewBox="0 0 406 93">
+    <rect x="6.67572e-06" y="13.4815" width="7.93029" height="74.5447" fill="currentColor"/>
+    <path d="M18.2397 52.7235L24.2772 47.5817L57.8911 88.0582L48.3318 88.0582L18.2397 52.7235Z" fill="#5BBCD4"/>
+    <path d="M34.8933 49.5514L40.9308 44.4096L77.2278 88.0366L67.4075 88.0262L34.8933 49.5514Z" fill="#5BBCD4"/>
+    <rect x="57.1908" y="2.92276" width="7.93029" height="83.5485" transform="rotate(42.3764 57.1908 2.92276)" fill="currentColor"/>
+    <rect x="59.4772" width="7.93029" height="22.2048" fill="currentColor"/>
+    <rect x="44.4096" y="7.9303" width="7.93029" height="22.9978" transform="rotate(-90 44.4096 7.9303)" fill="currentColor"/>
+    <path d="M110.882 61.3999L110.204 47.3281L135.413 20.7649H148.958L126.233 45.2211L119.46 52.4451L110.882 61.3999ZM99.9703 73.4399V20.7649H112.086V73.4399H99.9703ZM136.015 73.4399L117.278 50.4886L125.254 41.8349L150.237 73.4399H136.015ZM181.053 73.4399V65.5386L180.301 63.8079V49.6609C180.301 47.1525 179.523 45.196 177.968 43.7914C176.463 42.3867 174.13 41.6844 170.97 41.6844C168.813 41.6844 166.681 42.0355 164.574 42.7379C162.517 43.39 160.761 44.293 159.306 45.4469L155.092 37.2446C157.299 35.6895 159.958 34.4855 163.069 33.6326C166.179 32.7798 169.339 32.3534 172.55 32.3534C178.721 32.3534 183.512 33.8082 186.923 36.7179C190.334 39.6275 192.04 44.1676 192.04 50.3381V73.4399H181.053ZM168.712 74.0419C165.552 74.0419 162.843 73.5151 160.585 72.4616C158.328 71.358 156.597 69.878 155.393 68.0219C154.189 66.1657 153.587 64.0838 153.587 61.7761C153.587 59.3681 154.164 57.2611 155.318 55.4551C156.522 53.6491 158.403 52.2445 160.962 51.2411C163.52 50.1876 166.856 49.6609 170.97 49.6609H181.731V56.5086H172.249C169.49 56.5086 167.584 56.9601 166.53 57.8631C165.527 58.7661 165.025 59.8949 165.025 61.2494C165.025 62.7544 165.602 63.9584 166.756 64.8614C167.96 65.7142 169.59 66.1406 171.647 66.1406C173.604 66.1406 175.359 65.6891 176.915 64.7861C178.47 63.833 179.599 62.4534 180.301 60.6474L182.107 66.0654C181.254 68.674 179.699 70.6556 177.441 72.0101C175.184 73.3646 172.274 74.0419 168.712 74.0419ZM213.443 73.4399L198.844 32.9554H209.906L222.021 67.7961H216.754L229.396 32.9554H239.329L251.594 67.7961H246.327L258.818 32.9554H269.203L254.529 73.4399H243.166L232.406 43.5656H235.867L224.73 73.4399H213.443ZM300.427 73.4399V65.5386L299.675 63.8079V49.6609C299.675 47.1525 298.897 45.196 297.342 43.7914C295.837 42.3867 293.504 41.6844 290.344 41.6844C288.187 41.6844 286.055 42.0355 283.948 42.7379C281.891 43.39 280.135 44.293 278.68 45.4469L274.466 37.2446C276.674 35.6895 279.332 34.4855 282.443 33.6326C285.553 32.7798 288.714 32.3534 291.924 32.3534C298.095 32.3534 302.886 33.8082 306.297 36.7179C309.708 39.6275 311.414 44.1676 311.414 50.3381V73.4399H300.427ZM288.086 74.0419C284.926 74.0419 282.217 73.5151 279.959 72.4616C277.702 71.358 275.971 69.878 274.767 68.0219C273.563 66.1657 272.961 64.0838 272.961 61.7761C272.961 59.3681 273.538 57.2611 274.692 55.4551C275.896 53.6491 277.777 52.2445 280.336 51.2411C282.894 50.1876 286.23 49.6609 290.344 49.6609H301.105V56.5086H291.623C288.864 56.5086 286.958 56.9601 285.904 57.8631C284.901 58.7661 284.399 59.8949 284.399 61.2494C284.399 62.7544 284.976 63.9584 286.13 64.8614C287.334 65.7142 288.964 66.1406 291.021 66.1406C292.978 66.1406 294.734 65.6891 296.289 64.7861C297.844 63.833 298.973 62.4534 299.675 60.6474L301.481 66.0654C300.628 68.674 299.073 70.6556 296.815 72.0101C294.558 73.3646 291.648 74.0419 288.086 74.0419ZM324.296 73.4399V32.9554H335.508V44.3934L333.928 41.0824C335.132 38.2229 337.063 36.0657 339.722 34.6109C342.381 33.1059 345.617 32.3534 349.429 32.3534V43.1894C348.928 43.1392 348.476 43.1141 348.075 43.1141C347.674 43.064 347.247 43.0389 346.796 43.0389C343.585 43.0389 340.976 43.967 338.97 45.8231C337.013 47.6291 336.035 50.4635 336.035 54.3264V73.4399H324.296ZM376.043 74.0419C372.681 74.0419 369.671 73.3897 367.013 72.0854C364.404 70.781 362.372 68.7995 360.917 66.1406C359.462 63.4316 358.735 59.9952 358.735 55.8314V32.9554H370.474V54.1006C370.474 57.4618 371.176 59.945 372.581 61.5504C374.036 63.1055 376.068 63.8831 378.676 63.8831C380.482 63.8831 382.088 63.5069 383.492 62.7544C384.897 61.9517 386.001 60.7477 386.803 59.1424C387.606 57.4869 388.007 55.43 388.007 52.9719V32.9554H399.746V73.4399H388.609V62.3029L390.641 65.5386C389.287 68.348 387.28 70.48 384.621 71.9349C382.012 73.3395 379.153 74.0419 376.043 74.0419Z" fill="currentColor"/>
+  </symbol>
+</svg>
+
+<div class="doc">
+  <div class="hero">
+    <span class="coin"></span>
+    <div class="chan"><svg width="132" height="30" style="color:var(--brand)"><use href="#kawaru-logo"/></svg></div>
+    <div class="eyebrow">ONE-PAGE GUIDE</div>
+    <h1>面倒くさい採用メールのやり取りを<br><span class="hl"><ruby>Codex<rt>コーデックス</rt></ruby></span>で完全自動化</h1>
+    <p class="sub">応募が入った瞬間に自動返信 → AIが志望動機を要約 → 採用担当に通知。その仕組みを、コードが書けない人が「言葉」だけで作る手順を1ページにまとめました。</p>
+    <div class="meta"><span class="k">2026年版</span><span>初心者向け</span><span>所要12分</span><span>出典つき</span></div>
+  </div>
+
+  <div class="tocbar">
+    <a href="#s1">① 全体像</a><a href="#s2">② 何が大変か</a><a href="#s3">③ Codexと料金</a><a href="#s4">④ 作り方</a>
+    <a href="#s5">⑤ 止まらない設計</a><a href="#s6">⑥ 向かない場面</a><a href="#s7">⑦ 応用</a><a href="#s8">⑧ FAQ・行動</a><a href="#s9">🎁 プレゼント</a>
+  </div>
+
+  <section>
+    <div class="sec-h"><div class="no">!</div><h2>まず3行で</h2></div>
+    <div class="tldr">
+      <div class="t"><div class="k">STEP 1</div><p>やりたい動作を日本語の仕様書にしてCodexに渡す</p></div>
+      <div class="t"><div class="k">STEP 2</div><p>返ってきたコードをスプレッドシートに貼って実行する</p></div>
+      <div class="t"><div class="k">STEP 3</div><p>エラーが出たらその文をCodexに貼り返すだけで直る</p></div>
+    </div>
+    <div class="secsub">こんな悩み、ありませんか？</div>
+    <ul class="bullets">
+      <li><span class="nb">応募者への初回返信が2〜3日遅れ、</span><span class="nb">他社に流れてしまう</span></li>
+      <li><span class="nb">長い志望動機を1件ずつ読むのに時間が</span><span class="nb">取られる</span></li>
+      <li><span class="nb">こういう仕組みは外注しかない</span><span class="nb">（数万円）と思っていた</span></li>
+    </ul>
+  </section>
+
+  <section id="s1">
+    <div class="sec-h"><div class="no">1</div><h2>今日つくる仕組みの全体像</h2></div>
+    <div class="flow">
+      <div class="step"><div class="t">① 応募が入る</div><div class="d">フォーム回答が シートの行になる</div></div><div class="arrow">→</div>
+      <div class="step"><div class="t">② 自動返信</div><div class="d">数分以内に 面接案内メール</div></div><div class="arrow">→</div>
+      <div class="step"><div class="t">③ AIが要約</div><div class="d">志望動機を 3行に</div></div><div class="arrow">→</div>
+      <div class="step"><div class="t">④ 担当へ通知</div><div class="d">要約＋原文つき</div></div><div class="arrow">→</div>
+      <div class="step"><div class="t">⑤ 一覧管理</div><div class="d">ステータス列で 選考状況</div></div>
+    </div>
+    <p class="body" style="margin-top:14px;"><span class="nb">土台は </span><span class="hl">スプレッドシート ＋ Google Apps Script（GAS）＋ Gemini</span>。<span class="nb">3つとも無料で用意できます。</span><span class="nb">GAS＝スプレッドシートやGmailを</span><span class="nb">操作する小さなプログラムを、</span><span class="nb">インストール不要・</span><span class="nb">Googleのサーバー上で</span><span class="nb">動かせる仕組みです。</span></p>
+  </section>
+
+  <section id="s2">
+    <div class="sec-h"><div class="no">2</div><h2>採用対応の何が「10時間」なのか</h2></div>
+    <div class="cards">
+      <div class="c"><h3>返信が遅れる</h3><p>手で1件ずつ返信。初回連絡が2〜3日遅れ、その間に応募者は他社の面接へ進む。</p></div>
+      <div class="c"><h3>長文を読む</h3><p>志望動機を1件ずつ読み、経験・資格・勤務条件を目で拾う作業が毎回発生。</p></div>
+      <div class="c"><h3>状況が頭の中</h3><p>「誰に返した」「次は誰」が担当者の記憶頼り。休むと止まる。</p></div>
+    </div>
+    <div class="secsub">導入前 → 導入後</div>
+    <div class="ba">
+      <div class="panel before"><span class="tag">導入前</span><ul><li><span class="nb">初回返信まで2〜3日</span></li><li><span class="nb">長い志望動機を1件ずつ読む</span></li><li><span class="nb">選考状況は記憶頼り</span></li></ul></div>
+      <div class="mid">→</div>
+      <div class="panel after"><span class="tag">導入後</span><ul><li><span class="nb">応募の数分後に面接案内</span></li><li><span class="nb">経験・</span><span class="nb">強み・</span><span class="nb">勤務条件の3行要約が届く</span></li><li><span class="nb">ステータス列で一覧に</span></li></ul></div>
+    </div>
+    <p class="note" style="margin-top:10px;">※「10時間→10分」は配布ワークシートに書かれた作り手の実績値。第三者検証はしていません。</p>
+  </section>
+
+  <section id="s3">
+    <div class="sec-h"><div class="no">3</div><h2>Codexとは／いくらかかるのか</h2></div>
+    <p class="body"><ruby>Codex<rt><span class="nb">コーデックス</span></rt></ruby><span class="nb"> は </span><ruby>OpenAI<rt><span class="nb">オープンエーアイ</span></rt></ruby><span class="nb"> の</span><span class="nb">「コードを書く・</span><span class="nb">直すAIエージェント」。</span><ruby>ChatGPT<rt><span class="nb">チャットジーピーティー</span></rt></ruby><span class="nb"> のアカウントで</span><span class="nb">ログインして使います。</span><span class="nb">動く場所は ①ターミナル</span>（CLI）②エディタ拡張 ③デスクトップアプリ ④Web/クラウド の<span class="nb">4つ。</span><span class="nb">この動画では①または④を使います。</span></p>
+    <div class="doccard">
+      <div class="bar">help.openai.com — Using Codex with your ChatGPT plan</div>
+      <div class="bd">
+        <p class="en">"Codex is included across ChatGPT plans, including Free and Go. Usage limits vary by plan."</p>
+        <div class="ja-gloss">Codexは無料プランを含む全ChatGPTプランに同梱されている。プランで変わるのは使用量の上限だけ。</div>
+      </div>
+    </div>
+    <div class="secsub">料金（2026-08-31 時点・ChatGPT個人プラン）</div>
+    <div class="price">
+      <div class="p"><div class="name">無料版</div><div class="amt">$0</div><ul><li><span class="nb">Codexは上限つきで使える</span></li></ul></div>
+      <div class="p"><div class="name">Go</div><div class="amt">$8<small>/月</small></div><ul><li><span class="nb">メッセージ枠が拡大</span></li></ul></div>
+      <div class="p best"><div class="name">Plus</div><div class="amt">$20<small>/月</small></div><ul><li><span class="nb">Codexの利用上限が拡大</span></li></ul></div>
+      <div class="p"><div class="name">Pro</div><div class="amt">$100<small>〜</small></div><ul><li><span class="nb">Codexの最大タスク数</span></li></ul></div>
+    </div>
+    <p class="srcline">引用: OpenAI「ChatGPT 料金」「Using Codex with your ChatGPT plan」 <a href="https://chatgpt.com/pricing" target="_blank" rel="noopener">出典を見る →</a></p>
+    <div class="box" style="margin-top:14px;"><h3>⚠️ 良い面だけではない</h3>
+      <ul>
+        <li><span class="nb">無料はすぐ上限に当たる。</span><span class="nb">実務で回すなら $20 のPlusが</span><span class="nb">目安</span></li>
+        <li><span class="nb">生成コードは中身を</span><span class="nb">見ないまま動かさない</span><span class="nb">（動いても意図と違う・</span><span class="nb">穴があることがある）</span></li>
+        <li><span class="nb">モデルは入れ替わる</span><span class="nb">（2026年8月末にCodexの</span><span class="nb">旧モデルが終了→新モデルへ自動切替）</span></li>
+      </ul></div>
+  </section>
+
+  <section id="s4">
+    <div class="sec-h"><div class="no">4</div><h2>作り方（3ステップ）</h2></div>
+    <div class="secsub">① やりたいことを「言葉」で渡す</div>
+    <p class="body"><span class="hl"><span class="nb">背景 → データの形 → 処理の</span><span class="nb">順番 → 条件</span></span><span class="nb"> の4つを書けば、</span><span class="nb">コードは書けます。</span></p>
+    <div class="prompt"><span class="cm"># プロンプト①（配布ワークシートより）</span><br>
+あなたはGoogle Apps Scriptの専門家です。以下の仕様でコードを書いてください。<br>
+<span class="c"># 背景</span> 採用。応募への初回連絡が遅れ、応募者が他社へ流れている。<br>
+<span class="c"># シートの構成</span> 「応募シート」A列=タイムスタンプ / B列=氏名 / C列=メール …<br>
+<span class="c"># 処理の流れ</span> 未返信の行に、設定タブの件名・本文で自動返信メールを送る …<br>
+<span class="c"># 条件</span> 初心者向けに日本語コメントを入れ、使い方も説明して</div>
+    <div class="secsub">② まず「自動返信だけ」動かす（第1形態）</div>
+    <p class="body"><span class="nb">いきなり全部を作らず、</span><span class="nb">自動返信マシンだけを先に完成。</span><span class="nb">APIキーがなくても動きます。</span><span class="nb">返ってきたコードは</span><span class="nb">「拡張機能 → Apps Script」を</span><span class="nb">開いて貼り、</span><span class="nb">保存 → 実行。</span><span class="nb">初回だけ</span><span class="nb">「このアプリを許可しますか」に</span><span class="nb">承認します。</span></p>
+    <div class="secsub">③ AI要約と担当者通知を足す（第2形態）</div>
+    <p class="body"><span class="nb">動いているコードに</span><span class="nb">「志望動機を Gemini で</span><span class="nb">要約 → 担当者へ通知」を追記依頼。</span><span class="nb">Gemini APIキーは </span><span class="hl">Google AI Studio<span class="nb">（aistudio.google.com）で</span><span class="nb">無料発行</span></span><span class="nb">できます</span>（<span class="nb">「AIza…」で始まる文字列）。</span></p>
+    <div class="prompt"><span class="cm"># プロンプト②</span><br>
+先ほどのコードは正しく動きました。この動いているコードに機能を追加してください。<br>
+<span class="c">・</span>自動返信のあと、志望動機を Gemini API で要約する<br>
+<span class="c">・</span>採用担当へ「氏名・希望職種・要約・原文」つきの通知メールを送る<br>
+<span class="c">・</span>「AI要約は参考情報。合否判断に使わない」と本文に明記する</div>
+    <p class="body" style="margin-top:12px;"><b><span class="nb">なぜAIが2つ？</span></b><span class="nb"> コードを書くのが Codex</span><span class="nb">（作るときだけ・</span><span class="nb">1回）、</span><span class="nb">応募内容を要約するのが Gemini</span><span class="nb">（動くたびに毎回呼ばれる・</span><span class="nb">ずっと使う）。</span><span class="nb">役割が違います。</span></p>
+    <div class="kitbox">🎁 <b>プロンプト①②③の全文と、動作確認済みのコード見本</b>は、配布ワークシート（プレゼント）に入っています。受け取り方は最後のセクションで。</div>
+  </section>
+
+  <section id="s5">
+    <div class="sec-h"><div class="no">5</div><h2>AIが落ちても止まらない設計</h2></div>
+    <p class="body"><span class="nb">この仕組みの一番のポイントが </span><span class="hl"><span class="nb">エラー分離</span></span>。<span class="nb">「① 応募者への自動返信」と</span><span class="nb">「② AI要約＋担当者通知」を </span><span class="hl"><span class="nb">別々のかたまり</span>（try-catch）</span><span class="nb"> に分けます。</span><span class="nb">Geminiが落ちても、</span><span class="nb">応募者への返信は絶対に止めない。</span><span class="nb">要約が失敗したら</span><span class="nb">「要約なし</span><span class="nb">（APIエラー）」と記録し、</span><span class="nb">担当者へは志望動機の原文つきで</span><span class="nb">通知します。</span></p>
+    <div class="doccard">
+      <div class="bar">配布ワークシート — ⑥完成形見本</div>
+      <div class="bd">
+        <table>
+          <tr><td>氏名</td><td>自動返信</td><td>AI要約・注目ポイント</td></tr>
+          <tr><td>田中 美咲</td><td>送信済み</td><td>デイサービス3年の経験者。介護福祉士の有資格者。夜勤対応可能。</td></tr>
+          <tr><td>鈴木 健太</td><td>送信済み</td><td><b style="color:var(--accent-deep);">要約なし（APIエラー）</b></td></tr>
+        </table>
+        <div class="ja-gloss">2人目の「要約なし（APIエラー）」は失敗例ではなく設計どおりの動き。AIが止まっても、自動返信と担当者通知は届いている。</div>
+      </div>
+    </div>
+    <div class="secsub">エラーが出たら「貼り返す」だけ</div>
+    <div class="prompt"><span class="cm"># プロンプト③（お直し用）</span><br>
+先ほどのコードを実行したら、以下のエラーが出て動きませんでした。<br>
+バグを修正して、原因を初心者向けに説明してください。修正後のコードは全文で。<br>
+<span class="c">【ここにエラーメッセージをそのまま貼り付ける】</span></div>
+    <p class="note" style="margin-top:8px;">※ エラー文を貼れば大抵直りますが、「何をしたい仕組みか」を最初に説明できていることが前提。直ったコードも送信先・条件は目視確認します。</p>
+  </section>
+
+  <section id="s6">
+    <div class="sec-h"><div class="no">6</div><h2>どこまで使える／向かない場面</h2></div>
+    <div class="doccard">
+      <div class="bar">ai.google.dev/gemini-api/docs/pricing</div>
+      <div class="bd">
+        <table>
+          <tr><td>無料ティア</td><td class="en">Content used to improve our products（送った内容が製品改善に使われる）</td></tr>
+          <tr><td>有料ティア</td><td class="en">Content not used to improve our products（送った内容は使われない）</td></tr>
+        </table>
+        <div class="ja-gloss">無料のGemini APIキーで応募者の個人情報を処理すると、その内容が学習に使われうる。個人情報を扱うなら有料ティアへの切り替えや、応募者への断りを検討する。gemini-2.5-flash の有料料金は入力 $0.30・出力 $2.50 ／100万トークン。</div>
+      </div>
+    </div>
+    <div class="doccard">
+      <div class="bar">developers.google.com/apps-script — 割り当てと上限</div>
+      <div class="bd">
+        <table>
+          <tr><td>&nbsp;</td><td>一般アカウント</td><td>Workspace</td></tr>
+          <tr><td>1日あたりのメール送信先</td><td><b>100 / 日</b></td><td>1,500 / 日</td></tr>
+          <tr><td>スクリプト1回の実行時間</td><td>6分 / 回</td><td>6分 / 回</td></tr>
+          <tr><td>トリガー合計の実行時間</td><td>90分 / 日</td><td>6時間 / 日</td></tr>
+        </table>
+        <div class="ja-gloss">採用応募（1日数件）なら無料Gmailの100通/日で十分。大量にメールを送る用途には天井がある。</div>
+      </div>
+    </div>
+    <p class="srcline">引用: Google for Developers「Google サービスの割り当て」／Google「Gemini API pricing」 <a href="https://developers.google.com/apps-script/guides/services/quotas?hl=ja" target="_blank" rel="noopener">出典を見る →</a></p>
+    <div class="secsub">1枚でまとめ：良い面と注意点</div>
+    <div class="ba">
+      <div class="panel after"><span class="tag">良い面</span><ul>
+        <li><span class="nb">返信の遅れが数分に。</span><span class="nb">取りこぼしが減る</span></li>
+        <li><span class="nb">長い志望動機が3行要約で届く</span></li>
+        <li><span class="nb">スプレッドシート＋GAS＋Gemini無料枠で</span><span class="nb">完結</span></li>
+        <li><span class="nb">AIが落ちても業務は</span><span class="nb">止まらない設計にできる</span></li>
+      </ul></div>
+      <div class="mid">↔</div>
+      <div class="panel before"><span class="tag">注意点</span><ul>
+        <li><span class="nb">無料Gemini APIは内容が</span><span class="nb">学習に使われうる</span></li>
+        <li><span class="nb">無料Gmailは送信100通/日、</span><span class="nb">GAS実行6分/回</span></li>
+        <li><span class="nb">AI要約は誤る。</span><span class="nb">合否判断には使わない</span></li>
+        <li><span class="nb">生成コードは中身をレビューしてから</span><span class="nb">使う</span></li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section id="s7">
+    <div class="sec-h"><div class="no">7</div><h2>本物のフォーム接続／他の仕事へ</h2></div>
+    <div class="flow">
+      <div class="step"><div class="t">① フォーム作成</div><div class="d">氏名・メール・希望職種・ 志望動機の質問を並べる</div></div><div class="arrow">→</div>
+      <div class="step"><div class="t">② 回答先を指定</div><div class="d">回答をこのシートに 保存する設定に</div></div><div class="arrow">→</div>
+      <div class="step"><div class="t">③ 列を合わせる</div><div class="d">回答の列順を 応募シートに合わせる</div></div><div class="arrow">→</div>
+      <div class="step"><div class="t">④ そのまま動く</div><div class="d">応募が入るたび メニューを実行</div></div>
+    </div>
+    <p class="body" style="margin-top:14px;"><span class="nb">練習用シートで動けば、</span><span class="nb">本物のフォームにつなぐのは列を</span><span class="nb">合わせるだけ。</span><span class="nb">同じ型は </span><span class="hl"><span class="nb">日程調整・</span><span class="nb">資料請求対応・</span><span class="nb">予約受付</span></span><span class="nb"> にも使えます。</span><span class="nb">同じことは </span><ruby>Claude Code<rt><span class="nb">クロード コード</span></rt></ruby><span class="nb"> やGeminiのコード生成でもで</span><span class="nb">きます</span><span class="nb">（今回はCodexの例）。</span></p>
+    <p class="note">※ 配布ワークシートは「介護施設に8〜10万円で納品した仕組み」とされていますが、これは作り手の実績談で、第三者検証はしていません。</p>
+  </section>
+
+  <section id="s8">
+    <div class="sec-h"><div class="no">8</div><h2>FAQ／今日からやること</h2></div>
+    <div class="faq">
+      <div class="qa"><div class="q">プログラミングの知識は本当に要らない？</div><div class="a">コードを書く必要はありません。「何をしたい仕組みか」を言葉で説明する力と、結果を目視確認する姿勢は要ります。</div></div>
+      <div class="qa"><div class="q">全部無料でできますか？</div><div class="a">スプレッドシート・GAS・Gemini無料枠で始められます。実務でCodexを回すなら月$20が目安。個人情報を扱うならGeminiの有料ティアも検討します。</div></div>
+      <div class="qa"><div class="q">AIの要約をそのまま選考に使っていい？</div><div class="a">使わないでください。要約は担当者が確認しやすくするための参考情報です。</div></div>
+    </div>
+    <div class="secsub">今日からやること（この順番で）</div>
+    <ul class="steps">
+      <li><span class="n">1</span><span class="nb">配布ワークシートを</span><span class="nb">「コピーを作成」</span><span class="nb">して自分のドライブに置く</span></li>
+      <li><span class="n">2</span><span class="nb">応募シートに自分のメールを入れ、</span><span class="nb">プロンプト①でコードを作らせる</span></li>
+      <li><span class="n">3</span><span class="nb">Apps Scriptに</span><span class="nb">貼って実行 → 自分宛にメールが</span><span class="nb">届くのを確認</span><span class="nb">（第1形態）</span></li>
+      <li><span class="n">4</span><span class="nb">AI Studioで無料APIキーを</span><span class="nb">取り、</span><span class="nb">プロンプト②で要約＋通知を追加</span><span class="nb">（第2形態）</span></li>
+      <li><span class="n">5</span><span class="nb">本物のフォームを作り、</span><span class="nb">回答先をこのシートにして列を合わせる</span></li>
+    </ul>
+    <div class="box" style="margin-top:14px;"><h3>⚠️ この資料の確度</h3>
+      <ul>
+        <li><span class="nb">✅ 公式ドキュメントで確認済み／⚠️</span><span class="nb">「10時間→10分」</span><span class="nb">「8〜10万円で納品」は作り手の</span><span class="nb">実績談</span></li>
+        <li><span class="nb">Codexのプラン別レート上限の</span><span class="nb">具体数値は公開ページに無く、</span><span class="nb">AI Studio／Settings画面で</span><span class="nb">確認する形</span></li>
+        <li><span class="nb">仕様は変わります。</span><span class="nb">最終確認は各公式サイトで。</span></li>
+      </ul></div>
+  </section>
+
+  <section id="s9">
+    <div class="sec-h"><div class="no">🎁</div><h2>プレゼント（3点）</h2></div>
+    <div class="gift">
+      <h3>受け取れるもの</h3>
+      <ol>
+        <li><b><span class="nb">採用対応 自動化ワークシート</span></b><span class="nb">（Googleスプレッドシート）</span><span class="nb">— 応募シート・</span><span class="nb">設定・</span><span class="nb">プロンプト集・</span><span class="nb">動作確認済みのコード見本</span><span class="nb">（第1形態／完成形態）・</span><span class="nb">完成形見本。</span><span class="nb">「ファイル → コピーを作成」でその</span><span class="nb">日から使えます</span></li>
+        <li><b><span class="nb">Codex仕様書ジェネレーター</span><span class="nb">（アプリ）</span></b>— <span class="nb">「どのシート／どの列／何をトリガーに</span><span class="nb">／何をする／エラー時どうする」を</span><span class="nb">入力すると、</span><span class="nb">Codexにそのまま貼れる日本語の</span><span class="nb">仕様書ができます。</span><span class="nb">採用対応以外のGAS自動化にも</span><span class="nb">使えます</span></li>
+        <li><b><span class="nb">「AIに任せる前」</span><span class="nb">安全＆品質チェックリスト</span></b><span class="nb">— 個人情報をAIに渡してよいかの</span><span class="nb">判定、</span><span class="nb">APIキー管理、</span><span class="nb">無料／有料ティアの選択、</span><span class="nb">AI要約の免責明記、</span><span class="nb">送信上限の確認。</span><span class="nb">作る前と、</span><span class="nb">人に渡す前の2段階で確認します</span></li>
+      </ol>
+      <a class="cta" href="https://chaaaaarin.github.io/gift-library/aa/ep/111/" target="_blank" rel="noopener">🎁 プレゼント図書館から受け取る →</a>
+      <p class="note" style="margin-top:10px;">受け取りにはLINE登録が必要です。</p>
+    </div>
+  </section>
+
+  <footer>
+    <div class="frow">
+      <div class="lg"><svg width="132" height="30" style="color:#fff"><use href="#kawaru-logo"/></svg></div>
+      <a class="cta" href="https://chaaaaarin.github.io/gift-library/aa/ep/111/" target="_blank" rel="noopener">プレゼントを受け取る</a>
+    </div>
+    <p class="src">
+      出典：OpenAI「<a href="https://learn.chatgpt.com/docs/codex/cli" target="_blank" rel="noopener">Codex CLI</a>」「<a href="https://help.openai.com/en/articles/11369540-using-codex-with-your-chatgpt-plan" target="_blank" rel="noopener">Using Codex with your ChatGPT plan</a>」「<a href="https://chatgpt.com/pricing" target="_blank" rel="noopener">ChatGPT 料金</a>」／
+      Google「<a href="https://developers.google.com/apps-script/overview?hl=ja" target="_blank" rel="noopener">Apps Script の概要</a>」「<a href="https://developers.google.com/apps-script/guides/services/quotas?hl=ja" target="_blank" rel="noopener">サービスの割り当て</a>」「<a href="https://ai.google.dev/gemini-api/docs/pricing" target="_blank" rel="noopener">Gemini API pricing</a>」<br>
+      ※ 本資料は非公式まとめ。配布ワークシートはKawaruチャンネルの配布物です。
+    </p>
+  </footer>
+</div>
+</body>
+</html>
